@@ -1,5 +1,7 @@
 # Enoch's skills
 
+[![skills.sh](https://skills.sh/b/iamenochchirima/skills)](https://skills.sh/iamenochchirima/skills)
+
 Reusable Agent Skills for Codex, Claude Code, and other compatible agents.
 
 ## Long-running work
