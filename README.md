@@ -1,32 +1,57 @@
 # Enoch's skills
 
-Reusable Agent Skills for Codex and other coding agents.
+Reusable Agent Skills for Codex, Claude Code, and other compatible agents.
 
 ## Long-running work
 
 `long-running-work` helps an agent complete substantial, multi-phase work without
-losing the original objective. It creates a local, evidence-based plan, works one
-verified item at a time, and performs a completion audit before it stops.
+losing the original objective. It creates a local, evidence-based plan, works
+one verified item at a time, and performs a completion audit before it stops.
 
-### Install
+## Install with `npx skills`
 
-The simplest option works with Codex, Claude Code, and other supported agents:
+The primary installation path works with Codex, Claude Code, and other supported
+agents:
 
 ```bash
 npx skills@latest add iamenochchirima/skills
 ```
 
-The installer lets users choose which skills and agents to install. Use `--global`
-if the skill should be available across projects.
-
-### Install as a native Codex plugin
-
-Codex users can also install the managed plugin from this repository's marketplace:
+To install this skill globally for Codex without the interactive selector:
 
 ```bash
-codex plugin marketplace add iamenochchirima/skills
-codex plugin add long-running-work@enoch-skills
+npx skills@latest add iamenochchirima/skills \
+  --skill long-running-work \
+  --agent codex \
+  --global
 ```
+
+Refresh installed skills later with:
+
+```bash
+npx skills@latest update
+```
+
+## Install as a Claude Code plugin
+
+This repository also contains a Claude Code marketplace that points to the same
+canonical `skills/` directory. From inside Claude Code:
+
+```text
+/plugin marketplace add iamenochchirima/skills
+/plugin install enoch-skills@enoch-skills
+```
+
+The skill is then available as `/enoch-skills:long-running-work`. Claude users
+can update the marketplace and plugin after a new repository commit with:
+
+```text
+/plugin marketplace update enoch-skills
+/plugin update enoch-skills@enoch-skills
+```
+
+The plugin intentionally omits a fixed version, so Claude uses the repository
+commit as the update signal.
 
 ## License
 

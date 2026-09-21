@@ -1,0 +1,22 @@
+{
+  "name": "enoch-skills",
+  "owner": {
+    "name": "iamenochchirima",
+    "url": "https://github.com/iamenochchirima"
+  },
+  "description": "Reusable skills for disciplined, verifiable agent work.",
+  "plugins": [
+    {
+      "name": "enoch-skills",
+      "source": "./",
+      "description": "Reusable skills for disciplined, verifiable agent work.",
+      "category": "productivity",
+      "keywords": [
+        "agent-skills",
+        "codex",
+        "claude-code",
+        "long-running-work"
+      ]
+    }
+  ]
+}
