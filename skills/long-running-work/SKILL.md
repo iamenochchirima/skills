@@ -3,7 +3,7 @@ name: long-running-work
 description: Plan and carry out substantial, multi-phase work that needs sustained autonomous execution. Use when an agent must retain the objective, work through many requirements, verify progress, and avoid declaring completion prematurely. Do not use for small, self-contained changes.
 ---
 
-# Long-running work
+# Long-Running Work Skill
 
 Use a single local plan as the task's working memory. The plan keeps the work
 oriented after context compaction and makes completion auditable. It combines

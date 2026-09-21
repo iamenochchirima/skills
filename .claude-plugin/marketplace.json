@@ -8,6 +8,7 @@
   "plugins": [
     {
       "name": "enoch-skills",
+      "displayName": "Long-Running Work Skill",
       "source": "./",
       "description": "Reusable skills for disciplined, verifiable agent work.",
       "category": "productivity",

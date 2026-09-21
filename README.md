@@ -1,4 +1,4 @@
-# Enoch's skills
+# Long-Running Work Skill
 
 [![skills.sh](https://skills.sh/b/iamenochchirima/skills)](https://skills.sh/iamenochchirima/skills)
 
