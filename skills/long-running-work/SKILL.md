@@ -28,6 +28,10 @@ For a repository task, keep the plan under:
 .long-running-work/active/<task-slug>.md
 ```
 
+Keep unfinished plans in `active/`. After the completion audit passes, move the
+plan to `.long-running-work/completed/<task-slug>.md`. Leave blocked plans in
+`active/` until the blocker is resolved.
+
 Keep this directory local by adding `.long-running-work/` to `.git/info/exclude`
 when that file exists and does not already ignore it. Do not edit the project's
 `.gitignore` or documentation merely to store agent state. If the task is not in
@@ -36,6 +40,23 @@ automatically ignored.
 
 Use one active plan per task. Do not create separate progress, findings, and
 state files unless the user asks for them.
+
+## Recover or reorient
+
+When resuming after context compaction, interruption, or uncertainty:
+
+1. Read the active plan before changing files.
+2. Re-read Goal and scope, Definition of done, Current position, Evidence ledger,
+   and the remaining unchecked items.
+3. Inspect the current Git state and recent relevant commits.
+4. Do not assume an item is complete unless the plan contains evidence or the
+   current repository state verifies it.
+5. Correct stale Current position information before continuing.
+6. Resume from the next actionable unchecked item.
+
+If the active plan is missing, reconstruct one from the original request and the
+current repository state before making changes. Record any uncertainty in the
+Baseline or Decisions and findings sections.
 
 ## Plan format
 
@@ -104,6 +125,11 @@ are unknown. Keep the evidence ledger next to the checklist so a later session
 can tell why an item was marked complete. Do not turn the plan into a speculative
 design document.
 
+The plan is working state, not a frozen contract. When investigation reveals
+necessary work that was not listed initially, add it with its acceptance
+criteria and validation command. Preserve the user's original goal and scope.
+Record material scope or architectural changes under Decisions and findings.
+
 Do not create `AGENTS.md`, `SPEC.md`, `PLAN.md`, or `PROGRESS.md` merely because
 this skill is active. Those are project-owned documents. Use the hidden local
 plan by default, and follow an existing repository convention or an explicit
@@ -153,6 +179,16 @@ command for that milestone and check its acceptance criteria only after those
 commands pass. Then update the current position and continue to the next
 milestone. A completed milestone is not a stopping condition.
 
+## Plan lifecycle
+
+- Keep one unfinished plan per task under `.long-running-work/active/`.
+- Move a plan to `.long-running-work/completed/` only after the completion audit
+  passes and the final checkpoint or verified working-tree state is recorded.
+- Keep blocked work under `active/` with the exact blocker and required next
+  decision recorded.
+- If completed work needs follow-up, create a new active plan that links to the
+  completed plan. Do not treat a completed plan as current state.
+
 ## Commit discipline
 
 Checklist items are progress and verification units, not commit boundaries. Do
@@ -189,6 +225,9 @@ instead and continue.
 Before declaring success, perform the completion audit. Reconcile the finished
 work with the original request, not only with the plan. Add and complete any
 missing applicable work discovered during that audit.
+
+After the audit passes, record the final checkpoint or verified working-tree
+state and move the plan from `active/` to `completed/`.
 
 If progress depends on a user choice, missing credential, external approval, or
 unavailable system, record the exact blocker and ask for the smallest decision
