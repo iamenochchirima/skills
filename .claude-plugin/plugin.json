@@ -2,6 +2,7 @@
   "name": "enoch-skills",
   "displayName": "Long-Running Work Skill",
   "description": "Reusable skills for disciplined, verifiable agent work.",
+  "version": "0.2.0",
   "author": {
     "name": "iamenochchirima",
     "url": "https://github.com/iamenochchirima"

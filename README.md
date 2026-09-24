@@ -44,16 +44,18 @@ canonical `skills/` directory. From inside Claude Code:
 /plugin install enoch-skills@enoch-skills
 ```
 
-The skill is then available as `/enoch-skills:long-running-work`. Claude users
-can update the marketplace and plugin after a new repository commit with:
+The skill is then available as `/enoch-skills:long-running-work`. After
+publishing a release with both manifest versions bumped, Claude users can run:
 
 ```text
 /plugin marketplace update enoch-skills
 /plugin update enoch-skills@enoch-skills
 ```
 
-The plugin intentionally omits a fixed version, so Claude uses the repository
-commit as the update signal.
+The Claude plugin declares its version in both `.claude-plugin/plugin.json` and
+`.claude-plugin/marketplace.json`. Bump both values for each plugin release so
+Claude Code detects the update. The `npx skills` installer continues to use the
+repository commit as its update signal.
 
 ## License
 

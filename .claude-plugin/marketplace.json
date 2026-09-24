@@ -11,6 +11,7 @@
       "displayName": "Long-Running Work Skill",
       "source": "./",
       "description": "Reusable skills for disciplined, verifiable agent work.",
+      "version": "0.2.0",
       "category": "productivity",
       "keywords": [
         "agent-skills",

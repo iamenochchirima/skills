@@ -1,234 +1,601 @@
 ---
 name: long-running-work
-description: Plan and carry out substantial, multi-phase work that needs sustained autonomous execution. Use when an agent must retain the objective, work through many requirements, verify progress, and avoid declaring completion prematurely. Do not use for small, self-contained changes.
+description: Plan and execute substantial multi-phase software work using persistent state, feature slices, bounded verification, and recovery across long autonomous runs. Do not use for small, self-contained changes.
 ---
 
-# Long-Running Work Skill
+# Long-Running Work
 
-Use a single local plan as the task's working memory. The plan keeps the work
-oriented after context compaction and makes completion auditable. It combines
-the useful parts of a specification, milestone plan, and progress log without
-creating three files that can drift apart.
+Use a single local plan as durable working memory for substantial software tasks.
 
-## Decide whether to use a plan
+The core unit of progress is a **slice**: the smallest meaningful, independently verifiable unit of user-visible or system-visible behavior that leaves the repository in a coherent state.
 
-Use this skill when the request has several dependent phases, significant risk,
-multiple acceptance criteria, or is likely to require more than one focused
-work session. Do not create a plan for a narrow change that can be implemented
-and verified directly.
+A slice is:
 
-Before planning, inspect the request and the relevant repository. Preserve the
-user's stated scope. Do not add work merely because it seems useful.
+- a top-level checklist item;
+- a meaningful unit of behavior;
+- independently verifiable;
+- a recovery boundary;
+- a committable unit.
 
-## Create local working state
+A slice may contain internal implementation checkboxes. Those are execution aids, not independent delivery or verification units.
 
-For a repository task, keep the plan under:
+Prefer:
 
-```text
-.long-running-work/active/<task-slug>.md
-```
+> [ ] User can schedule a campaign.
 
-Keep unfinished plans in `active/`. After the completion audit passes, move the
-plan to `.long-running-work/completed/<task-slug>.md`. Leave blocked plans in
-`active/` until the blocker is resolved.
+over:
 
-Keep this directory local by adding `.long-running-work/` to `.git/info/exclude`
-when that file exists and does not already ignore it. Do not edit the project's
-`.gitignore` or documentation merely to store agent state. If the task is not in
-a Git repository, use the same directory but tell the user that it is not
-automatically ignored.
+> [ ] Add campaign table.
+>
+> [ ] Add scheduler service.
+>
+> [ ] Add API route.
 
-Use one active plan per task. Do not create separate progress, findings, and
-state files unless the user asks for them.
+The table, service, and route normally belong inside the same behavioral slice.
 
-## Recover or reorient
+---
 
-When resuming after context compaction, interruption, or uncertainty:
+# When to use
 
-1. Read the active plan before changing files.
-2. Re-read Goal and scope, Definition of done, Current position, Evidence ledger,
-   and the remaining unchecked items.
-3. Inspect the current Git state and recent relevant commits.
-4. Do not assume an item is complete unless the plan contains evidence or the
-   current repository state verifies it.
-5. Correct stale Current position information before continuing.
-6. Resume from the next actionable unchecked item.
+Use this skill when work involves:
 
-If the active plan is missing, reconstruct one from the original request and the
-current repository state before making changes. Record any uncertainty in the
-Baseline or Decisions and findings sections.
+- multiple dependent behaviors or requirements;
+- enough complexity to span several focused execution periods;
+- significant implementation or operational risk;
+- a need to retain progress across context compaction or interruption;
+- autonomous execution where losing state or expanding scope would be costly.
 
-## Plan format
+Do not use it for a narrow change that can be implemented and verified directly.
 
-Write a focused plan with these sections:
+Before planning:
 
-```markdown
-# <task title>
+1. Read the user's request.
+2. Inspect the relevant repository and conventions.
+3. Understand the existing behavior.
+4. Preserve the user's stated scope.
+5. Do not add work merely because it seems useful.
+
+---
+
+# Working state
+
+Keep the active plan at:
+
+`.long-running-work/active/<task-slug>.md`
+
+Move completed plans to:
+
+`.long-running-work/completed/<task-slug>.md`
+
+When possible, exclude `.long-running-work/` locally through `.git/info/exclude`.
+
+Do not modify project-owned files such as `.gitignore`, `AGENTS.md`, or documentation merely to store agent state.
+
+Use one active plan per task.
+
+The plan is operational state, not a diary. Keep only information needed to execute, recover, verify, and finish the task.
+
+---
+
+# Plan with feature slices
+
+Break the requested outcome into meaningful vertical slices.
+
+Good slices:
+
+- User can create and cancel a booking.
+- Scheduled campaigns are picked up and executed.
+- Agent tool calls survive worker restart without duplicate side effects.
+- Admin can disable a tenant.
+
+Poor slices:
+
+- Add database model.
+- Add types.
+- Create service.
+- Add API route.
+- Write tests.
+
+Those are normally implementation steps inside a slice.
+
+A slice should be:
+
+- describable as one meaningful outcome;
+- independently verifiable;
+- a coherent diff a reviewer could understand in one pass;
+- capable of leaving the repository in a valid state.
+
+Ask:
+
+> Could I describe what this slice delivers in one sentence?
+
+If not, it may be too broad.
+
+Ask:
+
+> Is this only an implementation detail needed for another behavior?
+
+If yes, it probably belongs inside that slice.
+
+Foundation slices are allowed when necessary infrastructure cannot naturally expose user-visible behavior. They must still have a concrete outcome, acceptance criteria, and verification.
+
+---
+
+# Checklist semantics
+
+Top-level slice checkboxes are the units of delivery.
+
+A slice becomes [x] only when:
+
+- its implementation checklist is complete;
+- its acceptance criteria are satisfied;
+- its planned verification passes;
+- concrete regressions introduced by the slice are resolved;
+- evidence and a checkpoint are recorded.
+
+Internal implementation checkboxes track progress within the slice.
+
+Tick them as work proceeds so mid-slice recovery remains possible.
+
+Internal items do not independently require:
+
+- acceptance criteria;
+- test suites;
+- evidence;
+- commits.
+
+Do not turn internal implementation items into miniature slices.
+
+---
+
+# Plan format
+
+Use this structure:
+
+`markdown
+# <Task title>
 
 ## Goal and scope
-<The requested outcome, boundaries, and what is explicitly out of scope.>
 
-## Constraints and relevant context
-- <Repository rules, compatibility requirements, or user decisions.>
+<Requested outcome and important boundaries.>
+
+### Out of scope
+
+- <Explicit non-goal>
+
+## Constraints
+
+- <Important repository, compatibility, or architectural constraint>
 
 ## Definition of done
-- [ ] <Observable end-to-end outcome required for completion>
+
+- [ ] <Observable end-to-end outcome>
+- [ ] <Observable end-to-end outcome>
 
 ## Baseline
-- Existing behavior: <What works or fails before changes>
-- Validation commands: <Commands for the affected area>
-- Git state: <Current branch, commit, and unrelated working-tree changes>
 
-## Milestones
-### 1. <milestone name>
-Acceptance criteria:
-- [ ] <Observable condition for this milestone>
+Existing behavior:
+<What currently works or fails.>
 
-Validation:
-- [ ] `<command>` passes
+Relevant validation:
+- `<command>`
 
-Implementation checklist:
-- [ ] <One coherent implementation or investigation item>
+Git state:
+<branch, commit, relevant pre-existing changes>
+
+---
+
+## Slices
+
+### [ ] Slice 1 — <observable behavior>
+
+**Risk:** low | normal | high; **Test budget:** <number>; **Depends on:** none | <slice>
+
+#### Outcome
+
+<One sentence describing what this slice delivers.>
+
+#### Acceptance criteria
+
+- [ ] <observable behavior>
+- [ ] <observable behavior>
+
+#### Invariants
+
+- [ ] <important property that must remain true>
+
+Use `None` when no important invariant exists beyond the acceptance criteria.
+
+#### Implementation
+
+- [ ] <implementation requirement>
+- [ ] <implementation requirement>
+- [ ] <implementation requirement>
+
+#### Required verification
+
+- [ ] <verification mapped to acceptance criterion or invariant>
+- [ ] `<relevant command>` passes
+
+Checkpoint: pending | Evidence: pending
+
+---
+
+### [ ] Slice 2 — <observable behavior>
+
+...
+
+---
+
+## Deferred work
+
+- None.
 
 ## Current position
-Milestone: <number and name>
-Current item: <unchecked item>
-Status: <investigating | implementing | verifying | blocked>
-Last verified checkpoint: <commit, command result, or none>
 
-## Evidence ledger
-- <Completed item>: <test, command, inspection, or artifact that proves it>
+Slice: <number and name>; Current focus: <brief description>; Last checkpoint: <checkpoint or none>
 
 ## Decisions and findings
-<Only facts that change later work.>
+
+- <Only information that materially affects later work>
 
 ## Blockers
+
 None.
 
 ## Completion audit
-- [ ] Re-read the original request and acceptance criteria.
-- [ ] Audit the repository against the definition of done, including unplanned gaps.
-- [ ] Confirm every applicable milestone and checklist item has verification evidence.
-- [ ] Run the complete relevant test, type-check, lint, build, and end-to-end validation.
-- [ ] Resolve or report every remaining gap.
-```
 
-The goal and scope come from the user's request. The definition of done is the
-stopping condition. The baseline prevents the agent from confusing a pre-existing
-failure with a regression. Each milestone needs its own acceptance criteria and
-validation commands, not only a list of files to edit. The implementation
-checklist describes the work needed to satisfy those conditions.
+- [ ] Original request and definition of done satisfied.
+- [ ] Every required slice complete with evidence.
+- [ ] Appropriate repository-level regression validation passes.
+- [ ] No known regression introduced by this work remains.
+- [ ] Remaining non-blocking findings are deferred.
+`
 
-Make checklist items concrete and small enough to verify. Capture dependencies
-in their order. Include investigation as a checklist item when important facts
-are unknown. Keep the evidence ledger next to the checklist so a later session
-can tell why an item was marked complete. Do not turn the plan into a speculative
-design document.
+---
 
-The plan is working state, not a frozen contract. When investigation reveals
-necessary work that was not listed initially, add it with its acceptance
-criteria and validation command. Preserve the user's original goal and scope.
-Record material scope or architectural changes under Decisions and findings.
+# Verification and debugging
 
-Do not create `AGENTS.md`, `SPEC.md`, `PLAN.md`, or `PROGRESS.md` merely because
-this skill is active. Those are project-owned documents. Use the hidden local
-plan by default, and follow an existing repository convention or an explicit
-user request when the work is meant to be shared with a team.
+Optimize for **sufficient evidence of correctness, not exhaustive evidence of correctness**.
 
-## Execute the plan
+The central rule is:
 
-Repeat until the completion audit passes or a genuine blocker requires the
-user:
+> **Explore deeply when concrete evidence shows something is broken. Do not explore broadly merely because something might be broken.**
 
-1. Re-read the objective, current position, and checklist.
-2. Find the next actionable unchecked item whose prerequisites are satisfied.
-3. Inspect the relevant code, configuration, tests, or external state.
-4. Make the smallest coherent change that advances that item.
-5. Run the item's narrowest useful verification.
-6. If verification fails, investigate the failure, fix it, and run the verification
-   again. Stay in this loop until it passes or a genuine blocker requires the user.
-7. After it passes, record the specific evidence in the plan and mark the item
-   `[x]`. Never check an item based only on an implementation that looks plausible.
-8. Update the current position, decisions, blockers, and checkpoint when they change.
-9. Re-read the plan and continue with the next actionable unchecked item.
+## Acceptance criteria and invariants
 
-In shorthand:
+Acceptance criteria define the behavior the slice must deliver.
 
-```text
-READ PLAN → NEXT ACTIONABLE ITEM → IMPLEMENT → VERIFY
-     ↑                                      │
-     └──────────── INVESTIGATE / FIX ← FAIL┘
-                         │ PASS
-                         ↓
-                  RECORD EVIDENCE
-                         ↓
-                        [x]
-                         ↓
-                 UPDATE CURRENT STATE
-                         ↓
-                      CONTINUE
-```
+Invariants define important properties that must remain true while delivering it.
 
-Do not mark an item complete because implementation looks plausible. Mark it
-complete only after the acceptance condition is verified. Evidence can be a
-test name and result, a command, a screenshot, a review observation, or another
-specific check appropriate to the item.
+Choose important invariants during planning.
 
-When a milestone's implementation checklist is complete, run every validation
-command for that milestone and check its acceptance criteria only after those
-commands pass. Then update the current position and continue to the next
-milestone. A completed milestone is not a stopping condition.
+Every planned new test should map to:
 
-## Plan lifecycle
+1. an acceptance criterion; or
+2. a named invariant.
 
-- Keep one unfinished plan per task under `.long-running-work/active/`.
-- Move a plan to `.long-running-work/completed/` only after the completion audit
-  passes and the final checkpoint or verified working-tree state is recorded.
-- Keep blocked work under `active/` with the exact blocker and required next
-  decision recorded.
-- If completed work needs follow-up, create a new active plan that links to the
-  completed plan. Do not treat a completed plan as current state.
+Do not add tests merely because:
 
-## Commit discipline
+- another edge case can be imagined;
+- another branch exists;
+- another helper was added;
+- another theoretical failure is possible;
+- broader coverage would be nice.
 
-Checklist items are progress and verification units, not commit boundaries. Do
-not create a commit after every checkbox by default.
+A passing slice does not need more tests simply because more tests could be written.
 
-Create a checkpoint commit when a coherent implementation unit is complete and
-verified. A good checkpoint usually:
+If execution reveals a previously unknown correctness requirement, classify it under the scope rules before expanding verification.
 
-- represents one understandable change;
-- includes the relevant tests with the implementation;
-- passes the applicable validation;
-- can be reviewed or reverted independently; and
-- leaves the repository in a reasonable state.
+## Test budgets
 
-Before committing:
+Each slice gets a test budget during planning.
 
-1. Re-check the working tree against the baseline. Treat unrelated existing
-   changes as user-owned.
-2. Inspect the complete diff and staged diff.
-3. Confirm the unit's relevant validation passes.
-4. Stage only files belonging to that unit.
-5. Create the commit only when the repository convention and user scope allow it.
-6. Record the commit ID and what it proves in the plan's checkpoint/evidence
-   ledger.
+Default guidance:
 
-Do not push, force-push, rewrite history, rebase, or amend unrelated commits as
-part of this workflow. A checkpoint commit improves recovery, but it is not
-proof that the overall task is complete. If commits are not authorized or do
-not fit the repository workflow, record a verified working-tree checkpoint
-instead and continue.
+- **Low risk:** up to 2 focused new tests.
+- **Normal risk:** up to 4 focused new tests.
+- **High risk:** choose an explicit budget based on the named invariants.
 
-## Finish honestly
+The budget limits planned new test cases. It does not cap required commands or manual checks, or investigation of a concrete failure.
 
-Before declaring success, perform the completion audit. Reconcile the finished
-work with the original request, not only with the plan. Add and complete any
-missing applicable work discovered during that audit.
+Do not consume the full budget merely because it exists.
 
-After the audit passes, record the final checkpoint or verified working-tree
-state and move the plan from `active/` to `completed/`.
+Do not increase it because more hypothetical edge cases can be imagined.
 
-If progress depends on a user choice, missing credential, external approval, or
-unavailable system, record the exact blocker and ask for the smallest decision
-or action needed. Do not claim the objective is complete in that case.
+A test beyond the planned budget is justified when concrete evidence discovered during implementation shows that additional verification is needed for an existing acceptance criterion, named invariant, or observed regression.
+
+Record the reason briefly under Decisions and findings.
+
+## Debug concrete failures deeply
+
+A real failure permits deep investigation.
+
+When a concrete bug, failing test, or regression exists:
+
+- reproduce it;
+- inspect relevant code and state;
+- add temporary diagnostics when useful;
+- test hypotheses;
+- try alternative fixes;
+- use focused experiments;
+- add a regression test when appropriate;
+- continue until the concrete failure is understood and resolved or a genuine external blocker exists.
+
+Do not stop merely because several attempts were required.
+
+Keep the investigation anchored to the observed failure.
+
+A difficult bug does not authorize unrelated edge-case discovery, broad refactoring, or general hardening.
+
+## Verification scope
+
+Use the narrowest useful verification first.
+
+During a slice:
+
+1. run the planned behavioral verification;
+2. run tests directly related to the changed area;
+3. broaden regression testing only when the changed surface justifies it.
+
+Do not run the entire repository suite after every slice unless:
+
+- the suite is cheap; or
+- the slice changes shared infrastructure with broad regression risk.
+
+Run broader repository-level validation during the completion audit.
+
+Required verification is chosen during planning and should not casually expand during execution.
+
+Adding new required verification follows the same classification rule as adding new work.
+
+---
+
+# Scope control and convergence
+
+The plan must converge.
+
+Required work should generally shrink as execution progresses.
+
+Discovering something that could be improved does not make it required.
+
+New work enters the active task only when necessary to:
+
+1. satisfy an existing acceptance criterion;
+2. preserve a named invariant;
+3. fix a concrete regression introduced by the current work;
+4. resolve a concrete blocker to the requested outcome; or
+5. satisfy a requirement clearly present in the original request but accidentally omitted from the plan.
+
+Otherwise, add it to **Deferred work**.
+
+Typical deferred work includes:
+
+- speculative edge cases;
+- unrelated refactors;
+- broader cleanup;
+- optional abstractions;
+- optional performance improvements;
+- exhaustive test permutations;
+- speculative hardening;
+- nice-to-have improvements.
+
+Classify new work **before implementing it**.
+
+Ask:
+
+> Would the requested behavior be incorrect, broken, or violate an existing acceptance criterion or named invariant without this change?
+
+If yes, it is required.
+
+If no, defer it.
+
+If required work belongs naturally to the current behavior, add it to the current slice.
+
+Create a new slice only when the discovered work represents a separate meaningful behavior.
+
+## Completed slices stay completed
+
+Do not repeatedly review, test, refactor, or harden a completed slice.
+
+Revisit it only when concrete evidence shows:
+
+- it is incorrect;
+- it caused a regression;
+- an assumption was false; or
+- later integration legitimately requires a change.
+
+Do not reopen completed slices merely to look for additional problems.
+
+## Hardening boundary
+
+Do not enter a hardening phase automatically.
+
+If hardening, security review, stress testing, resilience work, performance work, or similar work was explicitly part of the original request, represent it as planned slices from the beginning.
+
+Otherwise, hardening requires a new explicit user request.
+
+Deferred work never authorizes further implementation by itself.
+
+Finishing the requested implementation does not imply permission to harden it.
+
+---
+
+# Execute
+
+For each slice:
+
+1. Re-read the goal, current position, and current slice.
+2. Inspect the relevant existing implementation.
+3. Work through the internal implementation checklist, ticking items as completed.
+4. Implement the smallest coherent solution satisfying the slice.
+5. Run the planned verification.
+6. Investigate concrete failures as deeply as necessary while staying anchored to them.
+7. Resolve regressions introduced by the slice.
+8. Run appropriate affected-area regression checks.
+9. Record concise evidence.
+10. Inspect the complete slice diff.
+11. Record a checkpoint.
+12. Mark the top-level slice [x].
+13. Update Current position.
+14. Continue to the next actionable slice.
+
+Update Current position at slice boundaries and before risky or interruptible work, not after every edit.
+
+---
+
+# Checkpoints
+
+Every completed slice must have a checkpoint.
+
+A checkpoint is either:
+
+- a commit hash for the completed slice when commits are authorized; or
+- a verified working-tree state when commits are not being created.
+
+A slice must be committable, but committing is not required unless authorized.
+
+When commits are authorized, prefer one coherent commit per completed slice containing:
+
+- the implementation;
+- tests belonging to the behavior;
+- necessary supporting changes.
+
+Internal implementation checkboxes are not commit boundaries.
+
+Before recording a checkpoint:
+
+1. inspect the working tree and slice diff;
+2. preserve unrelated user-owned changes;
+3. confirm required verification passes;
+4. confirm the repository is coherent;
+5. commit the slice if authorized;
+6. record the commit hash, or for a working-tree checkpoint record the current branch and HEAD, task-owned changed files, and verification evidence.
+
+Do not rewrite unrelated history or user-owned work.
+
+---
+
+# Recovery
+
+The active plan is the source of truth after context compaction, interruption, restart, or uncertainty.
+
+Before resuming:
+
+1. Read the active plan.
+2. Re-read the goal and definition of done.
+3. Find the first unfinished top-level slice.
+4. Read its internal checklist and current focus.
+5. Inspect Git status and recent relevant commits.
+6. Verify the repository matches the recorded checkpoint.
+7. Correct stale plan state if necessary.
+8. Resume from the unfinished internal item.
+
+Example:
+
+`markdown
+### [x] Slice 1 — User can schedule a campaign
+
+Checkpoint: a83d91c | Evidence: scheduling behavior tests pass
+
+### [x] Slice 2 — Scheduled campaign executes
+
+Checkpoint: d51a220 | Evidence: worker integration tests pass
+
+### [ ] Slice 3 — Failed execution retries safely
+
+#### Implementation
+
+- [x] Persist execution attempt identity.
+- [x] Propagate idempotency key.
+- [ ] Handle worker restart after provider success.
+
+#### Required verification
+
+- [ ] Retry after simulated crash does not duplicate action.
+`
+
+Resume from the unfinished work in Slice 3.
+
+Do not repeat completed slices because conversational context was lost.
+
+---
+
+# Completion audit
+
+After all required slices are complete, perform one bounded audit against the original request.
+
+Confirm:
+
+- the original request and definition of done are satisfied;
+- every required slice has evidence and a checkpoint;
+- appropriate repository-level regression validation passes;
+- no known regression introduced by this work remains;
+- remaining non-blocking findings are deferred.
+
+The audit catches omissions and regressions.
+
+It does not authorize:
+
+- searching indefinitely for new edge cases;
+- speculative tests;
+- unrelated cleanup;
+- redesigning completed work;
+- optional hardening;
+- reopening slices without evidence.
+
+If the audit exposes a concrete correctness problem, fix it.
+
+If it reveals only another possible improvement, defer it.
+
+After the audit passes:
+
+1. record the final checkpoint;
+2. move the plan from `active/` to `completed/`;
+3. report the completed behavior, verification performed, and meaningful deferred work.
+
+---
+
+# Blockers
+
+Stop autonomous execution only when progress genuinely requires something the agent cannot resolve itself, such as:
+
+- a user decision;
+- missing credentials;
+- unavailable external access;
+- destructive approval;
+- materially ambiguous product behavior;
+- an external dependency that cannot be worked around safely.
+
+Do not treat a difficult bug as a blocker merely because several fixes failed.
+
+Continue investigating concrete failures while useful evidence and reasonable avenues remain.
+
+Ask the user when progress actually depends on information, permission, or a decision the agent cannot obtain independently.
+
+Record genuine blockers as:
+
+`text
+Blocker:
+<exact problem>
+
+Impact:
+<what cannot continue>
+
+Needed:
+<smallest user decision or action required>
+`
+
+Do not declare the task complete while a required blocker remains.
+
+---
+
+# Planning and approval
+
+After writing the plan:
+
+- if the user requested planning or review before implementation, present the slices, risks, test budgets, and verification and wait for approval;
+- if the user explicitly authorized autonomous implementation, proceed;
+- if planning reveals a material ambiguity, destructive decision, or architectural choice not implied by the request, ask before proceeding.
+
+Do not require approval for decisions already covered by the user's request or established repository conventions.
