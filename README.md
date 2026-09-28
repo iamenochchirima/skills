@@ -10,13 +10,28 @@ Reusable Agent Skills for Codex, Claude Code, and other compatible agents.
 losing the original objective. It creates a local, evidence-based plan, works
 one verified item at a time, and performs a completion audit before it stops.
 
+## Pstack adaptation baselines
+
+`skills/create-verification-skill`, `skills/maintain-verification-skill`, and
+`skills/show-me-your-work` started as pstack copies and have been adapted for
+project-local setup and tool-dependent verification. The PR-opening playbook is
+source material under `sources/pstack/`, not a standalone skill. See
+[the upstream record](sources/pstack/README.md) for provenance. Test the adapted
+skills on a real project before adding them to the one-time project playbook.
+
+`skills/enoch-mode` has nine adapted playbooks for investigation, changes,
+PRs, and handoffs. The unchanged poteto-mode source files live under
+`sources/pstack/poteto-mode/` for comparison. The skill passes structural
+validation, but still needs a real-project forward test before adding it to
+the one-time project playbook.
+
 ## Install with `npx skills`
 
 The primary installation path works with Codex, Claude Code, and other supported
 agents:
 
 ```bash
-npx skills@latest add iamenochchirima/skills
+npx skills@latest add iamenochchirima/skills --skill long-running-work
 ```
 
 To install this skill globally for Codex without the interactive selector:
